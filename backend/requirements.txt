@@ -1,0 +1,25 @@
+# Web framework
+fastapi==0.111.0
+uvicorn[standard]==0.29.0
+
+# Database
+sqlalchemy>=2.0.40
+alembic>=1.16.0
+psycopg[binary]
+
+# Auth & Security
+python-jose[cryptography]==3.3.0
+passlib[bcrypt]==1.7.4
+python-multipart==0.0.9
+
+# Data validation / settings
+pydantic>=2.10.0
+pydantic-settings>=2.6.0
+email-validator==2.1.1
+
+# Utilities
+python-dotenv==1.0.1
+loguru==0.7.2
+
+pytest
+httpx
