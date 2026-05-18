@@ -9,6 +9,7 @@ from sqlalchemy.orm import Session
 from app.api.deps import db_dep
 from app.models.models import LeadDiscoveryQueue, Lead
 from app.schemas.lead import LeadCreate, LeadUpdate, LeadOut
+from app.schemas.draft import LeadDraftRequest, LeadDraftResponse
 from app.services import lead_service
 from app.core.config import settings
 from app.services.openrouter_client import OpenRouterClient
@@ -21,19 +22,6 @@ class LeadDraftOut(BaseModel):
     queue_id: Optional[UUID] = None
     message_draft: Optional[str] = None
     source: str
-
-
-class DraftRequest(BaseModel):
-    outreach_type: str
-    tone: str
-    custom_note: Optional[str] = None
-
-
-class DraftResponse(BaseModel):
-    draft: str
-    lead_id: UUID
-    outreach_type: str
-    tokens_used: int
 
 
 @router.post("", response_model=LeadOut, status_code=status.HTTP_201_CREATED)
@@ -103,8 +91,8 @@ def get_lead_draft(lead_id: UUID, db: Session = Depends(db_dep)):
     raise HTTPException(status_code=404, detail="No AI draft found for this lead")
 
 
-@router.post("/{lead_id}/draft", response_model=DraftResponse)
-def create_lead_draft(lead_id: UUID, payload: DraftRequest, db: Session = Depends(db_dep)):
+@router.post("/{lead_id}/draft", response_model=LeadDraftResponse)
+def generate_lead_draft(lead_id: str, payload: LeadDraftRequest, db: Session = Depends(db_dep)):
     lead = lead_service.get_lead(db, lead_id)
     if not lead:
         raise HTTPException(status_code=404, detail="Lead not found")
@@ -135,41 +123,100 @@ def create_lead_draft(lead_id: UUID, payload: DraftRequest, db: Session = Depend
 
     user = "\n".join(user_parts)
 
+    # --- new implementation: use plain-text chat and persist to ai_outreach_template
+    def _char_limit(outreach_type: str) -> int:
+        return 300 if outreach_type == "connection_request" else 500
+
+    def _truncate_to_limit(text: str, limit: int) -> str:
+        t = (text or "").strip()
+        if len(t) <= limit:
+            return t
+        return t[: limit - 1].rstrip() + "…"
+
     try:
+        model = getattr(settings, "OPENROUTER_MODEL", "google/gemma-2-9b-it:free")
         client = OpenRouterClient(
             api_key=settings.OPENROUTER_API_KEY,
             base_url=getattr(settings, "OPENROUTER_BASE_URL", "https://openrouter.ai/api/v1"),
-            model=getattr(settings, "OPENROUTER_MODEL", "mistralai/mistral-7b-instruct"),
+            model=model,
         )
 
-        ai_obj = client.chat_json(system=system, user=user, max_tokens=400)
+        limit = _char_limit(payload.outreach_type)
 
-        draft = None
-        if isinstance(ai_obj, dict):
-            draft = ai_obj.get("draft")
+        # Build prompt using lead fields you already store
+        full_name = lead.full_name or "there"
+        headline = lead.job_title or ""
+        company = lead.company_or_brand or ""
+        location = ", ".join([x for x in [lead.city, lead.country, lead.region] if x])
+        bio = lead.bio or ""
+        notes = lead.notes or ""
+        category = lead.category.value if getattr(lead.category, "value", None) else str(lead.category)
 
-        if not draft or not isinstance(draft, str):
-            raise Exception("AI did not return a valid draft")
+        system = (
+            "You write concise, high-conversion LinkedIn outreach messages for GoTeeOff.\n"
+            "Return ONLY the message text. No quotes. No markdown. No emojis.\n"
+            f"Hard limit: {limit} characters.\n"
+            "Constraints:\n"
+            "- Non-spammy, human, specific.\n"
+            "- Include a light GoTeeOff 1-liner.\n"
+            "- Include one clear CTA question at the end.\n"
+            "- If outreach_type is connection_request: keep it extra short.\n"
+            "- If direct_message: slightly more context.\n"
+            "- If follow_up: reference prior touch politely.\n"
+        )
 
-        draft = draft.strip()
-        if len(draft) > max_chars:
-            draft = draft[:max_chars]
+        user = (
+            "Company positioning:\n"
+            "GoTeeOff is the world's first AI-powered golf travel platform — connecting golfers to 800+ courses, "
+            "8,000+ services, and Web3 rewards across Asia-Pacific (hotels, tours, experiences — all in one place).\n\n"
+            "Lead:\n"
+            f"- full_name: {full_name}\n"
+            f"- headline: {headline}\n"
+            f"- company: {company}\n"
+            f"- location: {location}\n"
+            f"- category: {category}\n"
+            f"- bio: {bio}\n"
+            f"- notes: {notes}\n\n"
+            "Draft requirements:\n"
+            f"- outreach_type: {payload.outreach_type}\n"
+            f"- tone: {payload.tone}\n"
+            f"- custom_note: {payload.custom_note or ''}\n\n"
+            "Write the best outreach message now."
+        )
 
+        # call plain text chat and capture usage
+        text, usage = client.chat_text(system=system, user=user, max_tokens=220)
+
+        draft = _truncate_to_limit(text, limit)
+        if not draft:
+            raise ValueError("Empty draft returned from model")
+
+        # Persist the generated draft on the lead before committing.
+        lead.ai_outreach_template = draft
         lead.ai_draft_message = draft
         db.commit()
 
-        tokens_used = len(draft)
+        # derive token usage if available
+        tokens_used = 0
+        try:
+            if usage and isinstance(usage, dict):
+                tokens_used = int(
+                    usage.get("total_tokens")
+                    or (usage.get("prompt_tokens", 0) + usage.get("completion_tokens", 0))
+                )
+        except Exception:
+            tokens_used = 0
 
-        return DraftResponse(
-            draft=draft,
+        return LeadDraftResponse(
             lead_id=lead.id,
             outreach_type=payload.outreach_type,
+            draft=draft,
             tokens_used=tokens_used,
+            model=model,
         )
-
-    except Exception as exc:
+    except Exception as e:
         db.rollback()
-        raise HTTPException(status_code=400, detail=str(exc))
+        raise HTTPException(status_code=400, detail=str(e))
 
 
 @router.patch("/{lead_id}", response_model=LeadOut)

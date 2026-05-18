@@ -43,6 +43,8 @@ class LeadBase(BaseModel):
     source_url: Optional[str] = None
     notes: Optional[str] = None
     raw_data: Optional[Dict[str, Any]] = None
+    ai_outreach_template: Optional[str] = None
+    ai_draft_message: Optional[str] = None
 
 
 class LeadCreate(LeadBase):
