@@ -164,6 +164,7 @@ class Lead(Base):
     ai_summary = Column(Text)               # AI-generated summary
     ai_outreach_template = Column(Text)     # AI-generated outreach draft
     ai_draft_message = Column(Text, nullable=True)  # AI-generated single-shot draft saved by endpoint
+    ai_score = Column(Float, nullable=True)  # AI score on 0-100 scale
     ai_tags = Column(JSON)                  # ["defi", "nft", "gaming", ...]
     ai_processed_at = Column(DateTime(timezone=True))
 
@@ -199,6 +200,7 @@ class Lead(Base):
         Index("idx_leads_category_country", "category", "country"),
         Index("idx_leads_category_status", "category", "status"),
         Index("idx_leads_relevance", "relevance_score"),
+        Index("idx_leads_ai_score", "ai_score"),
     )
 
 

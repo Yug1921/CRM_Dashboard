@@ -38,6 +38,7 @@ class LeadBase(BaseModel):
 
     relevance_score: Optional[float] = 0.0
     engagement_score: Optional[float] = 0.0
+    ai_score: Optional[float] = None
 
     source: Optional[str] = None
     source_url: Optional[str] = None
@@ -80,6 +81,7 @@ class LeadUpdate(BaseModel):
 
     relevance_score: Optional[float] = None
     engagement_score: Optional[float] = None
+    ai_score: Optional[float] = None
 
     source: Optional[str] = None
     source_url: Optional[str] = None
@@ -95,3 +97,15 @@ class LeadOut(LeadBase):
 
     class Config:
         from_attributes = True  # enables ORM -> Pydantic conversion
+
+
+class LeadStatusUpdateRequest(BaseModel):
+    status: str
+    notes: Optional[str] = None
+
+
+class LeadListResponse(BaseModel):
+    total: int
+    items: List[LeadOut]
+    limit: int
+    offset: int

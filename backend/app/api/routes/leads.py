@@ -1,4 +1,4 @@
-from typing import List, Optional
+from typing import Optional, List
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
@@ -8,7 +8,7 @@ from sqlalchemy.orm import Session
 
 from app.api.deps import db_dep
 from app.models.models import LeadDiscoveryQueue, Lead
-from app.schemas.lead import LeadCreate, LeadUpdate, LeadOut
+from app.schemas.lead import LeadCreate, LeadUpdate, LeadOut, LeadStatusUpdateRequest, LeadListResponse
 from app.schemas.draft import LeadDraftRequest, LeadDraftResponse
 from app.services import lead_service
 from app.core.config import settings
@@ -29,23 +29,38 @@ def create_lead(payload: LeadCreate, db: Session = Depends(db_dep)):
     return lead_service.create_lead(db, payload)
 
 
-@router.get("", response_model=List[LeadOut])
+@router.get("", response_model=LeadListResponse)
 def list_leads(
     db: Session = Depends(db_dep),
-    category: Optional[str] = None,
+    category: Optional[List[str]] = Query(default=None),
     status_: Optional[str] = Query(default=None, alias="status"),
+    source: Optional[str] = None,
     country: Optional[str] = None,
+    search: Optional[str] = None,
+    score_min: Optional[float] = Query(default=None, ge=0, le=100, alias="score_min"),
+    score_max: Optional[float] = Query(default=None, ge=0, le=100, alias="score_max"),
+    sort_by: str = Query(default="created_at", pattern="^(score|created_at|full_name)$"),
     limit: int = Query(default=50, ge=1, le=200),
     offset: int = Query(default=0, ge=0),
 ):
-    return lead_service.list_leads(
-        db=db,
-        category=category,
-        status=status_,
-        country=country,
-        limit=limit,
-        offset=offset,
-    )
+    try:
+        total, items = lead_service.list_leads_paginated(
+            db,
+            category=category,
+            status=status_,
+            source=source,
+            country=country,
+            search=search,
+            score_min=score_min,
+            score_max=score_max,
+            sort_by=sort_by,
+            limit=limit,
+            offset=offset,
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
+
+    return LeadListResponse(total=total, items=items, limit=limit, offset=offset)
 
 
 @router.get("/{lead_id}", response_model=LeadOut)
@@ -54,6 +69,18 @@ def get_lead(lead_id: UUID, db: Session = Depends(db_dep)):
     if not lead:
         raise HTTPException(status_code=404, detail="Lead not found")
     return lead
+
+
+@router.patch("/{lead_id}/status", response_model=LeadOut)
+def update_lead_status(lead_id: UUID, payload: LeadStatusUpdateRequest, db: Session = Depends(db_dep)):
+    lead = lead_service.get_lead(db, lead_id)
+    if not lead:
+        raise HTTPException(status_code=404, detail="Lead not found")
+
+    try:
+        return lead_service.update_lead_status(db, lead, payload.status, payload.notes)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
 
 
 @router.get("/{lead_id}/draft", response_model=LeadDraftOut)
