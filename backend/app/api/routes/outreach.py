@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import datetime, timezone
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException
@@ -8,7 +8,14 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.api.deps import db_dep
-from app.models.models import Lead, OutreachLog, OutreachChannel, OutreachStatus, OutreachType
+from app.models.models import (
+    Lead,
+    LeadStatus,
+    OutreachLog,
+    OutreachChannel,
+    OutreachStatus,
+    OutreachType,
+)
 from app.schemas.outreach import OutreachCreateRequest, OutreachOut
 
 router = APIRouter(prefix="/api", tags=["outreach"])
@@ -27,7 +34,7 @@ def create_outreach_log(
     # If client doesn't send sent_at, set it when status is "sent"
     sent_at = payload.sent_at
     if payload.status == "sent" and sent_at is None:
-        sent_at = datetime.utcnow()
+        sent_at = datetime.now(timezone.utc)
 
     row = OutreachLog(
         lead_id=lead_id,
@@ -42,6 +49,9 @@ def create_outreach_log(
     )
 
     db.add(row)
+    lead.status = LeadStatus.CONTACTED
+    if payload.status == "sent":
+        lead.last_contacted_at = sent_at
     db.commit()
     db.refresh(row)
     return OutreachOut.model_validate(row)
