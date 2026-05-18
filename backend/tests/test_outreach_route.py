@@ -39,7 +39,7 @@ def test_create_outreach_log_marks_lead_contacted_and_sets_last_contacted_for_se
     db.commit.assert_called_once()
 
 
-def test_create_outreach_log_marks_lead_contacted_without_touching_last_contacted_for_non_sent():
+def test_create_outreach_log_does_not_set_last_contacted_for_non_sent_status():
     lead = Lead(full_name="Test Lead", category=LeadCategory.CRYPTO_INFLUENCER)
     lead.id = uuid4()
     lead.last_contacted_at = None
