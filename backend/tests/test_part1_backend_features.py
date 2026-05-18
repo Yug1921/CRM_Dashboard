@@ -44,7 +44,7 @@ def test_list_leads_paginated_returns_total_and_applies_filters():
         category=["crypto_influencer"],
         status="contacted",
         source="apollo",
-        country="Thailand",
+        country="Thai",
         search="Alice",
         score_min=50,
         score_max=90,
@@ -61,7 +61,7 @@ def test_list_leads_paginated_returns_total_and_applies_filters():
     assert "like" in sql.lower()
     assert "ai_score" in sql
     assert "apollo" in sql
-    assert "Thailand" in sql
+    assert "%Thai%" in sql
 
 
 def test_build_lead_list_query_includes_count_and_score_sort():

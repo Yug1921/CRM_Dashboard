@@ -200,7 +200,6 @@ class Lead(Base):
         Index("idx_leads_category_country", "category", "country"),
         Index("idx_leads_category_status", "category", "status"),
         Index("idx_leads_relevance", "relevance_score"),
-        Index("idx_leads_ai_score", "ai_score"),
     )
 
 

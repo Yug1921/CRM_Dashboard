@@ -45,7 +45,7 @@ def list_leads(
     if status:
         stmt = stmt.where(Lead.status == status)
     if country:
-        stmt = stmt.where(Lead.country == country)
+        stmt = stmt.where(Lead.country.ilike(f"%{country.strip()}%"))
 
     stmt = stmt.limit(limit).offset(offset)
     return list(db.execute(stmt).scalars().all())
@@ -71,7 +71,8 @@ def build_lead_filters_stmt(
     if source:
         stmt = stmt.where(Lead.source == source)
     if country:
-        stmt = stmt.where(Lead.country == country)
+        country_pattern = f"%{country.strip()}%"
+        stmt = stmt.where(Lead.country.ilike(country_pattern))
     if score_min is not None:
         stmt = stmt.where(Lead.ai_score >= score_min)
     if score_max is not None:
