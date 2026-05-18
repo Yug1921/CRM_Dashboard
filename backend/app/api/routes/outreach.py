@@ -49,8 +49,8 @@ def create_outreach_log(
     )
 
     db.add(row)
-    lead.status = LeadStatus.CONTACTED
     if payload.status == "sent":
+        lead.status = LeadStatus.CONTACTED
         lead.last_contacted_at = sent_at
     db.commit()
     db.refresh(row)
