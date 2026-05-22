@@ -1,160 +1,134 @@
-@import "tw-animate-css";
-@import "shadcn/tailwind.css";
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-@layer utilities {
-  .text-balance {
-    text-wrap: balance;
-  }
-}
-
 @layer base {
   :root {
-    --bg: #f7f8fb;
-    --surface: #ffffff;
-    --surface2: #f1f3f7;
-    --border: #d9d9e6;
-    --accent: #00e5a0;
-    --accent-dim: #00e5a01f;
-    --accent-border: #00e5a040;
-    --text: #11111a;
-    --text-dim: #2d2e3a;
-    --text-muted: #6a6a86;
-    --radius: 0.625rem;
-    --cat-crypto-bg: #00d0841a;
-    --cat-crypto-text: #00d084;
-    --cat-crypto-border: #00d0844d;
-    --cat-saas-bg: #3b82f61a;
-    --cat-saas-text: #3b82f6;
-    --cat-saas-border: #3b82f64d;
-    --cat-real-estate-bg: #f59e0b1a;
-    --cat-real-estate-text: #f59e0b;
-    --cat-real-estate-border: #f59e0b4d;
-    --cat-ecom-bg: #8b5cf61a;
-    --cat-ecom-text: #8b5cf6;
-    --cat-ecom-border: #8b5cf64d;
-    --cat-golf-user-org-bg: #22c55e1a;
-    --cat-golf-user-org-text: #22c55e;
-    --cat-golf-user-org-border: #22c55e4d;
-    --cat-golf-brand-bg: #0ea5e91a;
-    --cat-golf-brand-text: #0ea5e9;
-    --cat-golf-brand-border: #0ea5e94d;
-    --cat-agency-bg: #f973161a;
-    --cat-agency-text: #f97316;
-    --cat-agency-border: #f973164d;
-    --cat-media-bg: #a855f71a;
-    --cat-media-text: #a855f7;
-    --cat-media-border: #a855f74d;
-    --cat-travel-bg: #14b8a61a;
-    --cat-travel-text: #14b8a6;
-    --cat-travel-border: #14b8a64d;
-    --cat-fitness-bg: #f43f5e1a;
-    --cat-fitness-text: #f43f5e;
-    --cat-fitness-border: #f43f5e4d;
-    --cat-unknown-bg: #9ca3af1a;
-    --cat-unknown-text: #9ca3af;
-    --cat-unknown-border: #9ca3af4d;
-    --status-new-bg: #3b82f61a;
-    --status-new-text: #3b82f6;
-    --status-new-border: #3b82f64d;
-    --status-engaged-bg: #f59e0b1a;
-    --status-engaged-text: #f59e0b;
-    --status-engaged-border: #f59e0b4d;
-    --status-contacted-bg: #22c55e1a;
-    --status-contacted-text: #22c55e;
-    --status-contacted-border: #22c55e4d;
-    --status-replied-bg: #8b5cf61a;
-    --status-replied-text: #8b5cf6;
-    --status-replied-border: #8b5cf64d;
-    --status-qualified-bg: #10b9811a;
-    --status-qualified-text: #10b981;
-    --status-qualified-border: #10b9814d;
-    --status-unqualified-bg: #ef44441a;
-    --status-unqualified-text: #ef4444;
-    --status-unqualified-border: #ef44444d;
-    --status-do-not-contact-bg: #6b72801a;
-    --status-do-not-contact-text: #6b7280;
-    --status-do-not-contact-border: #6b72804d;
-    --score-low-bg: #ff4d6d1a;
-    --score-low-text: #ff4d6d;
-    --score-medium-bg: #f59e0b1a;
-    --score-medium-text: #f59e0b;
-    --score-high-bg: #22c55e1a;
-    --score-high-text: #22c55e;
-    --background: var(--bg);
-    --foreground: var(--text);
-    --card: var(--surface);
-    --card-foreground: var(--text);
-    --popover: var(--surface);
-    --popover-foreground: var(--text);
-    --primary: var(--accent);
-    --primary-foreground: #03160f;
-    --secondary: var(--surface2);
-    --secondary-foreground: var(--text);
-    --muted: var(--surface2);
-    --muted-foreground: var(--text-muted);
-    --accent-foreground: #03160f;
-    --destructive: #ff4d6d;
-    --ring: var(--accent);
-    --input: var(--surface2);
-    --sidebar: var(--surface);
-    --sidebar-foreground: var(--text);
-    --sidebar-primary: var(--accent);
-    --sidebar-primary-foreground: #03160f;
-    --sidebar-accent: var(--accent-dim);
-    --sidebar-accent-foreground: var(--text);
-    --sidebar-border: var(--border);
-    --sidebar-ring: var(--accent);
+    /* shadcn/ui required HSL tokens */
+    --background:         220 20% 98%;
+    --foreground:         222 47% 11%;
+    --card:               0 0% 100%;
+    --card-foreground:    222 47% 11%;
+    --popover:            0 0% 100%;
+    --popover-foreground: 222 47% 11%;
+    --primary:            158 100% 45%;
+    --primary-foreground: 158 100% 5%;
+    --secondary:          220 16% 94%;
+    --secondary-foreground: 222 47% 11%;
+    --muted:              220 16% 94%;
+    --muted-foreground:   220 10% 46%;
+    --accent:             220 16% 94%;
+    --accent-foreground:  222 47% 11%;
+    --destructive:        346 100% 65%;
+    --destructive-foreground: 0 0% 100%;
+    --border:             220 16% 88%;
+    --input:              220 16% 88%;
+    --ring:               158 100% 45%;
+    --radius:             0.5rem;
+
+    /* GoTeeOff design tokens */
+    --gt-bg:           #09090f;
+    --gt-surface:      #111118;
+    --gt-surface2:     #18181f;
+    --gt-border:       #252530;
+    --gt-accent:       #00e5a0;
+    --gt-accent-dim:   rgba(0,229,160,0.1);
+    --gt-accent-bdr:   rgba(0,229,160,0.25);
+    --gt-text:         #e8e8f0;
+    --gt-dim:          #9494b0;
+    --gt-muted:        #55556a;
+
+    /* Category color tokens */
+    --cat-crypto-bg:     rgba(0,229,160,0.1);
+    --cat-crypto-text:   #00e5a0;
+    --cat-blockchain-bg: rgba(83,74,183,0.15);
+    --cat-blockchain-text:#9994e8;
+    --cat-expert-bg:     rgba(24,95,165,0.15);
+    --cat-expert-text:   #4fa3ff;
+    --cat-golf-bg:       rgba(245,166,35,0.15);
+    --cat-golf-text:     #f5a623;
+    --cat-travel-bg:     rgba(212,83,126,0.15);
+    --cat-travel-text:   #D4537E;
+
+    /* Score tokens */
+    --score-low-bg:    rgba(255,77,109,0.12);
+    --score-low-text:  #ff4d6d;
+    --score-mid-bg:    rgba(245,166,35,0.12);
+    --score-mid-text:  #f5a623;
+    --score-high-bg:   rgba(0,229,160,0.12);
+    --score-high-text: #00e5a0;
+
+    /* Status tokens */
+    --status-new-bg:        rgba(79,163,255,0.12);
+    --status-new-text:      #4fa3ff;
+    --status-contacted-bg:  rgba(167,139,250,0.12);
+    --status-contacted-text:#a78bfa;
+    --status-replied-bg:    rgba(0,229,160,0.12);
+    --status-replied-text:  #00e5a0;
+    --status-converted-bg:  rgba(245,166,35,0.12);
+    --status-converted-text:#f5a623;
+    --status-dnc-bg:        rgba(255,77,109,0.12);
+    --status-dnc-text:      #ff4d6d;
   }
+
   .dark {
-    --bg: #0f1116;
-    --surface: #151924;
-    --surface2: #1c2230;
-    --border: #2a2f3b;
-    --accent: #00e5a0;
-    --accent-dim: #00e5a01a;
-    --accent-border: #00e5a040;
-    --text: #e6e9f2;
-    --text-dim: #b7becc;
-    --text-muted: #7e879a;
-    --background: var(--bg);
-    --foreground: var(--text);
-    --card: var(--surface);
-    --card-foreground: var(--text);
-    --popover: var(--surface);
-    --popover-foreground: var(--text);
-    --primary: var(--accent);
-    --primary-foreground: #03160f;
-    --secondary: var(--surface2);
-    --secondary-foreground: var(--text);
-    --muted: var(--surface2);
-    --muted-foreground: var(--text-muted);
-    --accent-foreground: #03160f;
-    --destructive: #ff4d6d;
-    --ring: var(--accent);
-    --input: var(--surface2);
-    --sidebar: var(--surface);
-    --sidebar-foreground: var(--text);
-    --sidebar-primary: var(--accent);
-    --sidebar-primary-foreground: #03160f;
-    --sidebar-accent: var(--accent-dim);
-    --sidebar-accent-foreground: var(--text);
-    --sidebar-border: var(--border);
-    --sidebar-ring: var(--accent);
+    --background:         222 47% 4%;
+    --foreground:         220 13% 95%;
+    --card:               222 47% 7%;
+    --card-foreground:    220 13% 95%;
+    --popover:            222 47% 7%;
+    --popover-foreground: 220 13% 95%;
+    --secondary:          220 15% 12%;
+    --secondary-foreground: 220 13% 95%;
+    --muted:              220 15% 12%;
+    --muted-foreground:   220 10% 58%;
+    --accent:             220 15% 12%;
+    --accent-foreground:  220 13% 95%;
+    --border:             222 15% 16%;
+    --input:              222 15% 16%;
   }
+
+  html {
+    color-scheme: light;
+  }
+
+  html.dark {
+    color-scheme: dark;
+  }
+
   * {
-    @apply border-border outline-ring/50;
+    @apply border-border;
+    box-sizing: border-box;
   }
-  html,
-  body {
+
+  html, body {
     height: 100%;
-  }
-  body {
-    @apply bg-background text-foreground font-sans;
-    font-size: 13px;
-    line-height: 1.5;
     margin: 0;
   }
+
+  body {
+    background-color: hsl(var(--background));
+    color: hsl(var(--foreground));
+    font-family: 'Inter', system-ui, sans-serif;
+    font-size: 13px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* Scrollbar styling */
+  ::-webkit-scrollbar       { width: 4px; height: 4px; }
+  ::-webkit-scrollbar-track { background: hsl(var(--background)); }
+  ::-webkit-scrollbar-thumb { background: hsl(var(--border)); border-radius: 4px; }
+  ::-webkit-scrollbar-thumb:hover { background: hsl(var(--muted-foreground)); }
 }
+
+@layer utilities {
+  .text-balance { text-wrap: balance; }
+  .font-mono-num { font-family: 'Space Mono', monospace; }
+
+  /* GoTeeOff utility shorthands */
+  .gt-surface  { background-color: #111118; border: 0.5px solid #252530; border-radius: 10px; }
+  .gt-surface2 { background-color: #18181f; }
+  .gt-accent-text { color: #00e5a0; }
+} 

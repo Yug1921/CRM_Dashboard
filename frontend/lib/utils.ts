@@ -9,11 +9,11 @@ export function cn(...inputs: ClassValue[]) {
 
 export function timeAgo(value?: string | null): string {
   if (!value) {
-    return "—"
+    return "-"
   }
   const date = new Date(value)
   if (Number.isNaN(date.getTime())) {
-    return "—"
+    return "-"
   }
   const seconds = (Date.now() - date.getTime()) / 1000
   if (seconds < 60) {

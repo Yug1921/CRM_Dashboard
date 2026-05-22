@@ -3,7 +3,7 @@
 import * as React from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { motion } from "framer-motion"
+import { m } from "framer-motion"
 import { BarChart3, LayoutDashboard, Settings, Users, ChevronLeft, ChevronRight } from "lucide-react"
 
 import { cn } from "@/lib/utils"
@@ -36,12 +36,12 @@ export function Sidebar() {
   }
 
   return (
-    <motion.aside
+    <m.aside
       layout
       initial={false}
       animate={{ width: expanded ? 220 : 72 }}
       transition={{ type: "spring", stiffness: 220, damping: 24 }}
-      className="hidden min-h-screen flex-col border-r border-border bg-surface/95 p-4 lg:flex"
+      className="hidden min-h-screen flex-col border-r border-border bg-surface p-4 lg:flex"
     >
       <div className={cn("flex items-center", expanded ? "justify-start" : "justify-center")}>
         <div className={cn("flex items-center", expanded ? "gap-2" : "gap-0")}>
@@ -87,6 +87,6 @@ export function Sidebar() {
           {expanded ? <ChevronLeft data-icon="inline-start" /> : <ChevronRight data-icon="inline-start" />}
         </Button>
       </div>
-    </motion.aside>
+    </m.aside>
   )
 }

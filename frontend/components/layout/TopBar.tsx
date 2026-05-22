@@ -3,6 +3,7 @@
 import * as React from "react"
 import { usePathname, useRouter, useSearchParams } from "next/navigation"
 import { Bell, Moon, Search, Sun } from "lucide-react"
+import { useTheme } from "next-themes"
 
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
@@ -21,23 +22,26 @@ export function TopBar({ capturedToday = 0 }: { capturedToday?: number }) {
   const pathname = usePathname()
   const searchParams = useSearchParams()
   const [searchValue, setSearchValue] = React.useState(searchParams.get("search") ?? "")
+  const [mounted, setMounted] = React.useState(false)
   const debouncedSearch = useDebounce(searchValue, 300)
-  const [theme, setTheme] = React.useState<"light" | "dark">("dark")
+  const { resolvedTheme, setTheme } = useTheme()
+  const isLeads = pathname === "/leads"
 
   React.useEffect(() => {
-    setSearchValue(searchParams.get("search") ?? "")
-  }, [searchParams])
-
-  React.useEffect(() => {
-    const stored = window.localStorage.getItem("theme")
-    if (stored === "light" || stored === "dark") {
-      setTheme(stored)
-    } else {
-      setTheme(document.documentElement.classList.contains("dark") ? "dark" : "light")
-    }
+    setMounted(true)
   }, [])
 
   React.useEffect(() => {
+    if (!isLeads) {
+      return
+    }
+    setSearchValue(searchParams.get("search") ?? "")
+  }, [isLeads, searchParams])
+
+  React.useEffect(() => {
+    if (!isLeads) {
+      return
+    }
     const params = new URLSearchParams(searchParams.toString())
     if (debouncedSearch.trim()) {
       params.set("search", debouncedSearch.trim())
@@ -52,42 +56,43 @@ export function TopBar({ capturedToday = 0 }: { capturedToday?: number }) {
       return
     }
     router.replace(`${pathname}${nextQuery ? `?${nextQuery}` : ""}`)
-  }, [debouncedSearch, pathname, router, searchParams])
-
-  React.useEffect(() => {
-    document.documentElement.classList.toggle("dark", theme === "dark")
-    window.localStorage.setItem("theme", theme)
-  }, [theme])
+  }, [debouncedSearch, isLeads, pathname, router, searchParams])
 
   const toggleTheme = () => {
-    setTheme((prev) => (prev === "dark" ? "light" : "dark"))
+    setTheme(resolvedTheme === "dark" ? "light" : "dark")
   }
 
   return (
-    <div className="flex w-full items-center justify-between border-b border-border bg-surface/90 px-6 py-4">
+    <div className="flex w-full items-center justify-between border-b border-border bg-surface px-6 py-4">
       <div className="flex items-center gap-4">
         <div>
           <div className="text-xs uppercase tracking-[0.6px] text-text-muted">{titles[pathname] ?? ""}</div>
           <div className="text-lg font-semibold text-text">{titles[pathname] ?? ""}</div>
         </div>
-        <div className="hidden w-[320px] lg:block">
-          <InputGroup>
-            <InputGroupAddon>
-              <Search className="size-4" />
-            </InputGroupAddon>
-            <InputGroupInput
-              value={searchValue}
-              onChange={(event) => setSearchValue(event.target.value)}
-              placeholder="Search leads..."
-              aria-label="Search leads"
-            />
-          </InputGroup>
-        </div>
+        {isLeads ? (
+          <div className="hidden w-[320px] lg:block">
+            <InputGroup>
+              <InputGroupAddon>
+                <Search className="size-4" />
+              </InputGroupAddon>
+              <InputGroupInput
+                value={searchValue}
+                onChange={(event) => setSearchValue(event.target.value)}
+                placeholder="Search leads..."
+                aria-label="Search leads"
+              />
+            </InputGroup>
+          </div>
+        ) : null}
       </div>
 
       <div className="flex items-center gap-3">
         <Button variant="ghost" size="icon" onClick={toggleTheme} aria-label="Toggle theme">
-          {theme === "dark" ? <Sun className="size-4" /> : <Moon className="size-4" />}
+          {mounted ? (
+            resolvedTheme === "dark" ? <Sun className="size-4" /> : <Moon className="size-4" />
+          ) : (
+            <Moon className="size-4" />
+          )}
         </Button>
         <div className="relative">
           <Button variant="ghost" size="icon" aria-label="Notifications">

@@ -4,17 +4,17 @@ import type { StatsOverview } from "@/types/stats"
 
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE || "http://127.0.0.1:8000"
 
-const CATEGORY_TO_BACKEND: Record<LeadCategory, string> = {
-  crypto: "crypto",
-  saas: "saas",
-  real_estate: "real_estate",
-  ecom: "ecom",
-  golf_user_org: "golf_user_org",
-  golf_brand: "golf_brand",
-  agency: "agency",
-  media: "media",
-  travel: "travel",
-  fitness: "fitness",
+const CATEGORY_TO_BACKEND: Record<LeadCategory, string[]> = {
+  crypto: ["crypto_influencer", "blockchain_project", "blockchain_expert"],
+  saas: [],
+  real_estate: [],
+  ecom: [],
+  golf_user_org: ["golf_industry"],
+  golf_brand: ["golf_industry"],
+  agency: [],
+  media: [],
+  travel: ["travel_industry"],
+  fitness: [],
 }
 
 const CATEGORY_FROM_BACKEND: Record<string, LeadCategory> = {
@@ -35,7 +35,17 @@ const CATEGORY_FROM_BACKEND: Record<string, LeadCategory> = {
   travel_industry: "travel",
 }
 
-const STATUS_TO_BACKEND: Record<LeadStatus, string> = {
+const STATUS_TO_FILTER: Record<LeadStatus, string> = {
+  new: "new",
+  engaged: "contacted",
+  contacted: "contacted",
+  replied: "responded",
+  qualified: "qualified",
+  unqualified: "disqualified",
+  "do-not-contact": "disqualified",
+}
+
+const STATUS_TO_UPDATE: Record<LeadStatus, string> = {
   new: "new",
   engaged: "contacted",
   contacted: "contacted",
@@ -101,13 +111,15 @@ function mapStatus(status?: string | null): LeadStatus | null {
 function mapLead(lead: BackendLead): Lead {
   const raw = lead.raw_data ?? {}
   const headline = typeof raw.headline === "string" ? raw.headline : null
+  const locationParts = [lead.city, lead.country, lead.region].filter(Boolean)
+  const location = locationParts.length ? locationParts.join(", ") : null
   return {
     id: lead.id,
     name: lead.full_name,
     company: lead.company_or_brand ?? null,
     title: lead.job_title ?? null,
     headline: headline ?? lead.job_title ?? null,
-    location: lead.country ?? null,
+    location,
     linkedin_url: lead.linkedin_url ?? null,
     ai_score: lead.ai_score ?? null,
     ai_outreach_template: lead.ai_outreach_template ?? null,
@@ -141,12 +153,14 @@ function buildParams(filters: LeadFilters): URLSearchParams {
 
   if (filters.category?.length) {
     filters.category.forEach((category) => {
-      const backendCategory = CATEGORY_TO_BACKEND[category] ?? category
-      params.append("category", backendCategory)
+      const backendCategories = CATEGORY_TO_BACKEND[category] ?? []
+      backendCategories.forEach((backendCategory) => {
+        params.append("category", backendCategory)
+      })
     })
   }
   if (filters.status) {
-    const backendStatus = STATUS_TO_BACKEND[filters.status] ?? filters.status
+    const backendStatus = STATUS_TO_FILTER[filters.status] ?? filters.status
     params.set("status", backendStatus)
   }
   if (filters.source) {
@@ -211,7 +225,7 @@ export const api = {
   async updateStatus(leadId: string, payload: StatusUpdateRequest): Promise<Lead> {
     const backendPayload = {
       ...payload,
-      status: STATUS_TO_BACKEND[payload.status] ?? payload.status,
+      status: STATUS_TO_UPDATE[payload.status] ?? payload.status,
     }
     const data = await apiFetch<BackendLead>(`/api/leads/${leadId}/status`, {
       method: "PATCH",
